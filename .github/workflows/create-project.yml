@@ -21,6 +21,10 @@ on:
         description: "private/public"
         required: true
         default: "private"
+      port_context:
+        required: true
+        description: 'Action and general context (blueprint, entity, run id, etc...)'
+        type: string
 
 jobs:
   scaffold:
