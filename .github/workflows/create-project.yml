@@ -1,68 +1,64 @@
-name: Create Spring Reactive Service
+name: Create Java Reactive Service (Cookiecutter)
 
 on:
   workflow_dispatch:
     inputs:
-      service_name:
-        description: "Nombre del servicio (kebab-case). Ej: customer-api"
+      repo_name:
+        description: "Repo (kebab-case). Ej: customer-api"
         required: true
+      service_name:
+        description: "Service name (kebab-case). Ej: customer-api"
+        required: true
+      group_id:
+        description: "GroupId. Ej: com.demo"
+        required: true
+        default: "com.demo"
+      base_package:
+        description: "Base package. Ej: com.demo.customer"
+        required: true
+        default: "com.demo.customer"
       visibility:
-        description: "private o public"
+        description: "private/public"
         required: true
         default: "private"
 
 jobs:
   scaffold:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Create repo from template and clone
+      - name: Install cookiecutter
+        run: |
+          python -m pip install --upgrade pip
+          pip install cookiecutter
+
+      - name: Generate project from existing template repo
+        run: |
+          cookiecutter https://github.com/platform-engi/tpl-spring-reactive-openapi.git \
+            --no-input \
+            repo_name="${{ inputs.repo_name }}" \
+            service_name="${{ inputs.service_name }}" \
+            group_id="${{ inputs.group_id }}" \
+            base_package="${{ inputs.base_package }}"
+
+      - name: Create repo
         env:
           GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
         run: |
-          SERVICE="${{ inputs.service_name }}"
+          REPO="${{ inputs.repo_name }}"
           VIS="${{ inputs.visibility }}"
+          gh repo create platform-engi/${REPO} --${VIS} --confirm
 
-          gh repo create platform-engi/${SERVICE} \
-            --template platform-engi/tpl-spring-reactive-openapi \
-            --${VIS} \
-            --confirm \
-            --clone
-
-      - name: Verify repo content
+      - name: Push generated content
+        env:
+          GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
         run: |
-          SERVICE="${{ inputs.service_name }}"
-          cd "${SERVICE}"
-          echo "Listing files:"
-          ls -la
-          echo "Git status:"
-          git status
-          echo "Commits:"
-          git log --oneline -n 5 || true
-
-          # Si está vacío, fallamos con mensaje claro
-          FILECOUNT=$(find . -maxdepth 2 -type f | wc -l | tr -d ' ')
-          if [ "$FILECOUNT" -le 3 ]; then
-            echo "ERROR: Repo seems empty or template did not copy files. Check template repo has commits and files."
-            exit 1
-          fi
-
-      - name: Replace placeholders
-        run: |
-          SERVICE="${{ inputs.service_name }}"
-          cd "${SERVICE}"
-
-          # No fallar si no hay placeholders
-          grep -rl "__SERVICE_NAME__" . | xargs -r sed -i "s/__SERVICE_NAME__/${SERVICE}/g"
-
-      - name: Commit & push bootstrap
-        run: |
-          SERVICE="${{ inputs.service_name }}"
-          cd "${SERVICE}"
-
+          REPO="${{ inputs.repo_name }}"
+          cd "${REPO}"
+          git init
           git config user.name "platform-bot"
           git config user.email "platform-bot@users.noreply.github.com"
-
           git add .
-          git diff --cached --quiet && echo "No changes to commit" || git commit -m "chore: bootstrap ${SERVICE}"
-          git push
+          git commit -m "chore: bootstrap ${REPO}"
+          git branch -M main
+          git remote add origin "https://github.com/platform-engi/${REPO}.git"
+          git push -u origin main
