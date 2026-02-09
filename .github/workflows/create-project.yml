@@ -99,7 +99,7 @@ jobs:
           
           payload = {
               "microservicio": {
-                  "cod_servicio": f"{service_name}-{repo}",
+                  "cod_servicio": f"{service}-{repo}",
                   "nombre_servicio": repo,
                   "open_api": open_api,
                   "tecnologia": "Java",
