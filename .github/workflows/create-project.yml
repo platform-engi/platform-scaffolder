@@ -41,7 +41,7 @@ jobs:
           git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
       - name: Generate project from existing template repo
         run: |
-          cookiecutter https://${{ secrets.ORG_ADMIN_TOKEN }}@github.com/platform-engineeing/tpl-spring-reactive-openapi.git \
+          cookiecutter https://github.com/platform-engineeing/tpl-spring-reactive-openapi.git\
             --no-input \
             repo_name="${{ inputs.repo_name }}" \
             service_name="${{ inputs.service_name }}" \
