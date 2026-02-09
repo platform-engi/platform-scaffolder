@@ -120,9 +120,3 @@ jobs:
 
           # Ejecutamos el archivo que acabamos de crear
           python3 report.py
-      
-          # Ahora ejecutamos CURL desde BASH, no desde Python
-          curl -sS -X POST \
-            -H "Content-Type: application/json" \
-            -d @payload.json \
-            "$PORT_WEBHOOK_URL"
