@@ -107,19 +107,21 @@ jobs:
           
           payload = {
               "microservicio": {
-                  "cod_servicio": f"{service}-{repo}",
-                  "nombre_servicio": repo,
-                  "open_api": open_api,
+                  "cod_servicio": f"{service}:{repo}",
+                  "nombre_servicio": service,
                   "tecnologia": "Java",
                   "estado_de_aprovisionamiento": "Generado"
               },
               "branch": {
-                  "codigo_branch": f"{repo}:{branch}",
+                  "codigo_branch": f"{service}:{repo}:{branch}",
+                  "nombre_repositorio": repo,
+                  "branch": branch,
                   "build_status": "Con errores",
                   "cobertura": 0,
                   "vulnerabilidades_altas": 0,
                   "secretos_encontrados": 0,
-                  "url_pipeline": run_url
+                  "url_pipeline": run_url,
+                  "open_api": open_api
               }
           }
           
