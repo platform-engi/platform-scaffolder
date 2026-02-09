@@ -76,6 +76,7 @@ jobs:
       - name: Update Port entities + OpenAPI
         env:
           PORT_WEBHOOK_URL: ${{ secrets.PORT_WEBHOOK_URL }}
+          SERVICE: ${{ inputs.service_name }}
           REPO: ${{ inputs.repo_name }}
           BRANCH: main
           RUN_URL: https://github.com/platform-001/${{ inputs.repo_name }}/actions
@@ -89,6 +90,7 @@ jobs:
           repo = os.environ["REPO"]
           branch = os.environ["BRANCH"]
           run_url = os.environ["RUN_URL"]
+          service = os.environ["SERVICE"]
           webhook_url = os.environ["PORT_WEBHOOK_URL"]
           
           # Lee OpenAPI YAML
@@ -97,7 +99,7 @@ jobs:
           
           payload = {
               "microservicio": {
-                  "cod_servicio": repo,
+                  "cod_servicio": f"{service_name}-{repo}"
                   "nombre_servicio": repo,
                   "open_api": open_api,
                   "tecnologia": "Java",
