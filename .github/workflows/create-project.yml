@@ -70,3 +70,52 @@ jobs:
           git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/platform-engi/${REPO}.git"
           git push -u origin main
 
+      - name: Update Port entities + OpenAPI
+        env:
+          PORT_WEBHOOK_URL: ${{ secrets.PORT_WEBHOOK_URL }}
+          REPO: ${{ inputs.repo_name }}
+          BRANCH: main
+          RUN_URL: https://github.com/platform-engi/${{ inputs.repo_name }}/actions
+        run: |
+          cd "${REPO}"
+
+          python - << 'PY'
+          import json, pathlib, os
+          
+          repo = os.environ["REPO"]
+          branch = os.environ["BRANCH"]
+          run_url = os.environ["RUN_URL"]
+          
+          # Lee OpenAPI YAML (ajusta ruta si tu template usa otra)
+          openapi_path = pathlib.Path("api/openapi.yaml")
+          
+          if openapi_path.exists():
+              open_api = openapi_path.read_text(encoding="utf-8")
+          else:
+              open_api = ""
+          
+          payload = {
+            "microservicio": {
+              "cod_servicio": repo,
+              "nombre_servicio": repo,
+              "open_api": open_api,
+              "tecnologia": "Java",
+              "estado_de_aprovisionamiento": "Generado"
+            },
+            "branch": {
+              "codigo_branch": f"{repo}:{branch}",
+              "build_status": "Con errores",
+              "cobertura": 0,
+              "vulnerabilidades_altas": 0,
+              "secretos_encontrados": 0,
+              "url_pipeline": run_url
+            }
+          }
+          
+          print(json.dumps(payload))
+          PY > payload.json
+          
+                    curl -sS -X POST \
+                      -H "Content-Type: application/json" \
+                      -d @payload.json \
+                      "$PORT_WEBHOOK_URL"
