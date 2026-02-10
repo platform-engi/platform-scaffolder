@@ -46,6 +46,30 @@ jobs:
             service_name="${{ inputs.service_name }}" \
             group_id="${{ inputs.group_id }}" \
             base_package="${{ inputs.base_package }}"
+      - name: Normalize Java package folders (move __package__ -> com/demo/..)
+        run: |
+          REPO="${{ inputs.repo_name }}"
+          BASE_PACKAGE="${{ inputs.base_package }}"
+          PACKAGE_PATH="$(echo "$BASE_PACKAGE" | tr '.' '/')"
+
+          cd "$REPO"
+
+          # main
+          if [ -d "src/main/java/__package__" ]; then
+            mkdir -p "src/main/java/$PACKAGE_PATH"
+            rsync -a "src/main/java/__package__/" "src/main/java/$PACKAGE_PATH/"
+            rm -rf "src/main/java/__package__"
+          fi
+
+          # test
+          if [ -d "src/test/java/__package__" ]; then
+            mkdir -p "src/test/java/$PACKAGE_PATH"
+            rsync -a "src/test/java/__package__/" "src/test/java/$PACKAGE_PATH/"
+            rm -rf "src/test/java/__package__"
+          fi
+
+          # Replace placeholder package statement in Java files
+          find src -name "*.java" -type f -print0 | xargs -0 sed -i "s/__BASE_PACKAGE__/$BASE_PACKAGE/g"
 
       - name: Create repo
         env:
